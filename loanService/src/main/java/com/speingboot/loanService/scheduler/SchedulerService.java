@@ -5,6 +5,7 @@ import com.speingboot.loanService.model.Loan;
 import com.speingboot.loanService.repository.LoanRepository;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,14 +19,13 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 
-
-@Component
+@Slf4j
 public class SchedulerService {
 
     @Autowired
     private LoanRepository loanRepository;
     @Autowired
-    private KafkaTemplate<String, OverdueNotificationDto> kafkaTemplate;
+    private KafkaTemplate<String, Object> kafkaTemplate;
 
 
     @Scheduled(fixedRate = 60000) // This cron expression means midnight every day
@@ -39,6 +39,8 @@ public class SchedulerService {
             notification.setMessage("The loan with ID " + loan.getId() + " is overdue.");
 
             kafkaTemplate.send("loan-notification", notification);
+            log.info("[checkForOverdueBooks] :: message {}",notification);
+
         }
     }
 
