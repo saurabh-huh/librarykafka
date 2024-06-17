@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -17,6 +18,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 
+
+@Component
 public class SchedulerService {
 
     @Autowired
@@ -25,7 +28,7 @@ public class SchedulerService {
     private KafkaTemplate<String, OverdueNotificationDto> kafkaTemplate;
 
 
-    @Scheduled(cron = "0 0 0 * * *") // This cron expression means midnight every day
+    @Scheduled(fixedRate = 60000) // This cron expression means midnight every day
     public void checkForOverdueBooks() {
         List<Loan> overdueLoans = loanRepository.findByReturnDateBefore(new Date());
         for (Loan loan : overdueLoans) {
@@ -35,7 +38,7 @@ public class SchedulerService {
             notification.setBookId(loan.getBookId());
             notification.setMessage("The loan with ID " + loan.getId() + " is overdue.");
 
-            kafkaTemplate.send("loan-notifications", notification);
+            kafkaTemplate.send("loan-notification", notification);
         }
     }
 
